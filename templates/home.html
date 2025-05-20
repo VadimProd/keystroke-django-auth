@@ -10,6 +10,5 @@
     <p>You are logged in as {{ user.username }}</p>
 {% else %}
     <p>You are not logged in.</p>
-    <p><a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a></p>
 {% endif %}
 {% endblock %}
