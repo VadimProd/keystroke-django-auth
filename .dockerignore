@@ -19,3 +19,4 @@ build/
 .git/
 .gitignore
 .DS_Store
+migrations/

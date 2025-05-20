@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Keystroke Test{% endblock %}
+
+{% block content %}
+<h2>Type the phrase below:</h2>
+<p>"The quick brown fox jumps over the lazy dog"</p>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="typed_text" id="typed_text" autocomplete="off">
+    <input type="hidden" name="timing_data" id="timing_data">
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+let timings = [];
+let lastTime = null;
+
+const input = document.getElementById("typed_text");
+input.addEventListener("keydown", function(event) {
+    const now = Date.now();
+    if (lastTime !== null) {
+        const interval = now - lastTime;
+        timings.push({key: event.key, time: interval});
+    }
+    lastTime = now;
+});
+
+const form = document.querySelector("form");
+form.addEventListener("submit", function() {
+    document.getElementById("timing_data").value = JSON.stringify(timings);
+});
+</script>
+{% endblock %}
