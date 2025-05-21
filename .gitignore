@@ -7,3 +7,6 @@ __pycache__/
 
 # Migrations
 migrations/
+
+# Other files
+data/

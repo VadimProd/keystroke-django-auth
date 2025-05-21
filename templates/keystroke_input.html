@@ -1,35 +1,76 @@
 {% extends "base.html" %}
-
-{% block title %}Keystroke Test{% endblock %}
-
+{% block title %}Keystroke Input{% endblock %}
 {% block content %}
-<h2>Type the phrase below:</h2>
-<p>"The quick brown fox jumps over the lazy dog"</p>
-
-<form method="post">
+<h2>Please enter your password</h2>
+<p>Attempt {{ attempt }} of {{ max_attempts }}</p>
+<form id="keystroke-form" method="post">
     {% csrf_token %}
-    <input type="text" name="typed_text" id="typed_text" autocomplete="off">
+    <input type="password" name="typed_text" id="typed_text" required autocomplete="off">
     <input type="hidden" name="timing_data" id="timing_data">
     <button type="submit">Submit</button>
 </form>
 
 <script>
-let timings = [];
-let lastTime = null;
+    const keyEvents = [];
 
-const input = document.getElementById("typed_text");
-input.addEventListener("keydown", function(event) {
-    const now = Date.now();
-    if (lastTime !== null) {
-        const interval = now - lastTime;
-        timings.push({key: event.key, time: interval});
-    }
-    lastTime = now;
-});
+    document.getElementById('keystroke-form').addEventListener('submit', function (e) {
+        e.preventDefault();
 
-const form = document.querySelector("form");
-form.addEventListener("submit", function() {
-    document.getElementById("timing_data").value = JSON.stringify(timings);
-});
+        const typedText = document.getElementById('typed_text').value;
+        const result = [];
+
+        // Получаем все keydown события в порядке их появления
+        const downs = keyEvents.filter(ev => ev.type === 'keydown');
+        const ups = keyEvents.filter(ev => ev.type === 'keyup');
+
+        for (let i = 0; i < downs.length; i++) {
+            const kd = downs[i];
+            const ku = ups.find(u => u.key === kd.key && u.time > kd.time && !u.used);
+
+            if (ku) ku.used = true;
+
+            if (i > 0) {
+                const prevKD = downs[i - 1];
+                const prevKU = ups.find(u => u.key === prevKD.key && u.time > prevKD.time);
+
+                const dd = kd.time - prevKD.time;
+                const du = prevKU ? kd.time - prevKU.time : 0;
+
+                result.push(`keydown[${kd.key}]-keydown[${prevKD.key}]`, (dd).toFixed(1));
+                result.push(`keydown[${kd.key}]-keyup[${prevKD.key}]`, (du).toFixed(1));
+
+                // result.push(`kd[${kd.key}_${i}]-kd[${prevKD.key}_${i - 1}]`, dd);
+                // result.push(`kd[${kd.key}_${i}]-ku[${prevKD.key}_${i - 1}]`, du);
+            }
+            
+            const hold = ku ? ku.time - kd.time : 0;
+            result.push(`hold[${kd.key}]`, (hold).toFixed(1));
+        }
+
+        console.log(result.join('\t'));
+
+        // Поместим результат в скрытое поле, чтобы отправить на сервер
+        document.getElementById('timing_data').value = result.join('\t');
+
+        // // Очистка
+        // keyEvents.length = 0;
+        // document.getElementById('typed_text').value = '';
+
+        // Теперь отправим форму
+        e.target.submit();
+    });
+
+    document.getElementById('typed_text').addEventListener('keydown', function (e) {
+        const timestamp = Math.round(performance.now());
+        keyEvents.push({ type: 'keydown', key: e.key, time: timestamp });
+        console.log(`keydown: ${e.key} at ${timestamp}`);
+    });
+
+    document.getElementById('typed_text').addEventListener('keyup', function (e) {
+        const timestamp = Math.round(performance.now());
+        keyEvents.push({ type: 'keyup', key: e.key, time: timestamp });
+        console.log(`keyup: ${e.key} at ${timestamp}`);
+    });
 </script>
+
 {% endblock %}

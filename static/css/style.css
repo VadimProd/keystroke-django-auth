@@ -3,23 +3,23 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background: #f0f2f5; /* Светлый фон для комфортного восприятия */
-    color: #333; /* Тёмно-серый текст для удобства чтения */
+    background: #0d1117; /* GitHub dark background */
+    color: #c9d1d9; /* GitHub light text */
 }
 
 /* ===== Navigation bar ===== */
 nav {
-    background: #2c3e50; /* Темно-синий фон */
+    background: #161b22; /* GitHub navbar background */
     padding: 12px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Легкая тень под меню */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
 }
 
 /* Ссылки в навигации */
 nav a {
-    color: #ecf0f1; /* Светлый цвет текста */
+    color: #c9d1d9;
     text-decoration: none;
     margin: 0 15px;
     font-weight: 600;
@@ -27,9 +27,8 @@ nav a {
     font-size: 1rem;
 }
 
-/* При наведении — выделение */
 nav a:hover {
-    color: #f39c12; /* Яркий оранжевый цвет */
+    color: #58a6ff; /* GitHub link hover */
     text-decoration: underline;
 }
 
@@ -38,18 +37,18 @@ nav a:hover {
     max-width: 900px;
     margin: 30px auto;
     padding: 20px 30px;
-    background: white; /* Белый фон */
+    background: #161b22; /* GitHub container background */
     border-radius: 6px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1); /* Мягкая тень */
-
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
 }
 
 /* ===== Кнопки и кнопки отправки ===== */
-button, input[type="submit"] {
-    background-color: #3498db; /* Насыщенный синий */
+button,
+input[type="submit"] {
+    background-color: #238636; /* GitHub green button */
     border: none;
     padding: 12px 20px;
-    color: white;
+    color: #ffffff;
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
@@ -57,9 +56,9 @@ button, input[type="submit"] {
     transition: background-color 0.3s ease;
 }
 
-/* При наведении — чуть темнее */
-button:hover, input[type="submit"]:hover {
-    background-color: #2980b9;
+button:hover,
+input[type="submit"]:hover {
+    background-color: #2ea043;
 }
 
 /* ===== Формы ===== */
@@ -68,27 +67,34 @@ form {
 }
 
 /* Поля ввода */
-input[type="text"], input[type="password"], input[type="email"] {
+input[type="text"],
+input[type="password"],
+input[type="email"] {
     width: 100%;
     padding: 12px 15px;
     margin: 8px 0 16px 0;
-    border: 1px solid #ccc;
+    border: 1px solid #30363d;
     border-radius: 5px;
     font-size: 1rem;
+    background-color: #0d1117;
+    color: #c9d1d9;
     box-sizing: border-box;
     transition: border-color 0.3s ease;
 }
 
-/* Фокус на поле — синий контур и тень */
-input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
-    border-color: #3498db;
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+    border-color: #58a6ff;
     outline: none;
-    box-shadow: 0 0 6px rgba(52,152,219,0.4);
+    box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.3);
 }
 
 /* ===== Заголовки ===== */
-h1, h2, h3 {
-    color: #222;
+h1,
+h2,
+h3 {
+    color: #ffffff;
     margin-bottom: 15px;
     font-weight: 700;
 }
@@ -103,23 +109,23 @@ h1, h2, h3 {
 
 /* Красный фон для ошибок */
 .message.error {
-    background-color: #f8d7da;
-    color: #842029;
-    border: 1px solid #f5c2c7;
+    background-color: #f85149;
+    color: #fff;
+    border: 1px solid #da3633;
 }
 
 /* Зеленый фон для успеха */
 .message.success {
-    background-color: #d1e7dd;
-    color: #0f5132;
-    border: 1px solid #badbcc;
+    background-color: #238636;
+    color: #ffffff;
+    border: 1px solid #2ea043;
 }
 
 /* Навигация - контейнеры */
 nav .nav-brand a {
     font-weight: 700;
     font-size: 1.3rem;
-    color: #ecf0f1;
+    color: #f0f6fc;
 }
 
 nav .nav-links {
@@ -129,6 +135,6 @@ nav .nav-links {
 }
 
 nav .nav-user {
-    color: #ecf0f1;
+    color: #c9d1d9;
     font-weight: 600;
 }
