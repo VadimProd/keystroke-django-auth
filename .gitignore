@@ -10,3 +10,5 @@ migrations/
 
 # Other files
 data/
+media/
+test_model/

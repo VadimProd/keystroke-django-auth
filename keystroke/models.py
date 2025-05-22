@@ -12,7 +12,7 @@ class KeystrokeSample(models.Model):
     
 class KeystrokeProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    model_file = models.FileField(upload_to='models/')
+    model_file = models.FileField(upload_to="models/", null=True, blank=True)
     trained_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

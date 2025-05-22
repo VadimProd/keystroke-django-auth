@@ -1,17 +1,27 @@
-import random
+import os
+import io
 import csv
+import random
 import shutil
+import joblib
+import numpy as np
 
 from pathlib import Path
 from collections import OrderedDict
+from .models import KeystrokeSample, KeystrokeProfile
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
-from .models import KeystrokeSample
 from django.conf import settings
+from django.core.files.base import ContentFile
 
-MAX_ATTEMPTS = 2
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+
+MAX_ATTEMPTS = 15
 
 CSV_PATH = Path(settings.BASE_DIR) / 'data' / 'keystroke_data.csv'
 
@@ -95,6 +105,17 @@ def save_csv(sample, timing_data):
     row.update(timing_dict)  # В правильном порядке
     append_row(row, columns)
 
+def extract_features_from_timing(timing_str):
+    parts = timing_str.split('\t')
+    features = []
+    for i in range(1, len(parts), 2):
+        try:
+            value = float(parts[i])
+        except (ValueError, IndexError):
+            value = 0.0
+        features.append(value)
+    return features
+
 def keystroke_input(request):
     if 'keystroke_attempt' not in request.session:
         request.session['keystroke_attempt'] = 1
@@ -116,6 +137,39 @@ def keystroke_input(request):
         request.session['keystroke_attempt'] += 1
         if request.session['keystroke_attempt'] > MAX_ATTEMPTS:
             del request.session['keystroke_attempt']
+
+            # Обучение модели
+            user_data = KeystrokeSample.objects.filter(user=request.user).values_list('timing_data', flat=True)
+            X = [extract_features_from_timing(timing) for timing in user_data]
+            X = np.array(X)
+            X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
+
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
+            
+            model = IsolationForest(contamination=0.05, random_state=42, n_estimators=6)
+            model.fit(X_train_scaled)
+
+            buffer = io.BytesIO()
+            joblib.dump({'model': model, 'scaler': scaler}, buffer)
+            buffer.seek(0)  # перемещаемся в начало
+
+            # Сохраняем в FileField
+            profile, _ = KeystrokeProfile.objects.get_or_create(user=request.user)
+            profile.model_file.save(f"model_user_{request.user.id}.pkl", ContentFile(buffer.read()), save=True)
+
+            # # Имя файла — уникальное для пользователя
+            # model_filename = f"model_user_{request.user.id}.pkl"
+            # model_path = os.path.join('/app/data/models', model_filename)
+
+            # # Сохраняем модель и scaler
+            # joblib.dump({'model': model, 'scaler': scaler}, model_path)
+
+            # with open(model_path, 'rb') as f:
+            #     profile, created = KeystrokeProfile.objects.get_or_create(user=request.user)
+            #     profile.model_file.save(model_filename, File(f), save=True)
+
             return redirect('logout')
 
     return render(request, "keystroke_input.html", {
