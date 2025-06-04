@@ -28,10 +28,14 @@
 
     if (passwordInput) {
         passwordInput.addEventListener('keydown', e => {
-            keyEvents.push({ type: 'keydown', key: e.key, time: performance.now() });
+            const timestamp = Math.round(performance.now());
+            console.log(`keydown: ${e.key} at ${timestamp}`);
+            keyEvents.push({ type: 'keydown', key: e.key, time: timestamp });
         });
         passwordInput.addEventListener('keyup', e => {
-            keyEvents.push({ type: 'keyup', key: e.key, time: performance.now() });
+            const timestamp = Math.round(performance.now());
+            keyEvents.push({ type: 'keyup', key: e.key, time: timestamp });
+            console.log(`keyup: ${e.key} at ${timestamp}`);
         });
     }
 
@@ -58,6 +62,8 @@
             const hold = ku ? ku.time - kd.time : 0;
             result.push(`hold[${kd.key}]`, hold.toFixed(1));
         }
+
+        console.log(result.join('\t'));
 
         document.getElementById('timing_data').value = result.join('\t');
     });

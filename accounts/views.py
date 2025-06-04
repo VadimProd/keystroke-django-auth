@@ -64,6 +64,7 @@ def login_view(request):
 
                 status = "Принято (настоящий пользователь)" if prediction == 1 else "Отклонено (возможный злоумышленник)"
                 print(f"Оценка аномалии = {decision_scores}, вероятность легитимности = {probabilities} — {status}")
+                print(timing_data)
 
                 if prediction == 1:
                     login(request, user)  # Успешный вход
