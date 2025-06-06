@@ -68,38 +68,32 @@ if __name__ == '__main__':
     #
 
     X_test, y_true = detector.get_test_data('datasets/DSL-StrongPasswordData.csv')
+    create_csv(data=X_test, filename='current_attempt.csv', mode='test')
+
+    #
+    # Run auth script
+    #
+    
+    result = subprocess.run(
+        ["Rscript", "R-scripts/authenticator.R"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True
+    )
+
+    #
+    # Evaluate output
+    #
+
+    output_lines = result.stdout.strip().splitlines()
+    cutoff = 800.0
 
     y_pred = []
-    for i in tqdm(range(len(X_test)), desc="Predict..."):
-        create_csv(data=X_test[i].reshape(1, -1), filename='current_attempt.csv', mode='test')
-
-        #
-        # Run auth script
-        #
-        
-        result = subprocess.run(
-            ["Rscript", "R-scripts/authenticator.R"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True
-        )
-
-        #
-        # Evaluate output
-        #
-
-        output_lines = result.stdout.strip().splitlines()
-        last_line = output_lines[-1] if output_lines else None
-
-        score = float(last_line)
-        cutoff = 800.0
+    for prob in tqdm(output_lines, desc="Processing predictions"):
+        score = float(prob)
         percent_score = min(score / cutoff, 1.0)
         is_real_user = percent_score < 1.0
         y_pred.append(1 if is_real_user else -1)
-        
-        # print(f"{percent_score:.3f}")
     
-    accuracy = accuracy_score(y_pred, y_true)
-    roc_auc = roc_auc_score(y_pred, y_true)
     print(f"{classification_report(y_true, y_pred)}")
-
+    print(f"ROC-AUC: {roc_auc_score(y_pred, y_true):.2f}")
