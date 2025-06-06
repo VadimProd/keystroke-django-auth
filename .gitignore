@@ -11,3 +11,5 @@ migrations/
 # Other files
 data/
 media/
+dmod
+tmp_main.py

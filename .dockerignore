@@ -21,3 +21,4 @@ build/
 .DS_Store
 migrations/
 media/
+test_model/

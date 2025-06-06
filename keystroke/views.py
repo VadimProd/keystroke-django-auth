@@ -141,12 +141,13 @@ def keystroke_input(request):
             # Обучение модели
             user_data = KeystrokeSample.objects.filter(user=request.user).values_list('timing_data', flat=True)
             X = [extract_features_from_timing(timing) for timing in user_data]
-            X = np.array(X)
-            X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
+            print(X)
+            X_train = np.array(X)
+            # X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
 
             scaler = StandardScaler()
             X_train_scaled = scaler.fit_transform(X_train)
-            X_test_scaled = scaler.transform(X_test)
+            # X_test_scaled = scaler.transform(X_test)
             
             model = IsolationForest(contamination=0.05, random_state=42, n_estimators=6)
             model.fit(X_train_scaled)
@@ -157,7 +158,11 @@ def keystroke_input(request):
 
             # Сохраняем в FileField
             profile, _ = KeystrokeProfile.objects.get_or_create(user=request.user)
-            profile.model_file.save(f"model_user_{request.user.id}.pkl", ContentFile(buffer.read()), save=True)
+            profile.model_file.save(
+                f"model_user_{request.user.id}.pkl", 
+                ContentFile(buffer.read()), 
+                save=True
+            )
 
             # # Имя файла — уникальное для пользователя
             # model_filename = f"model_user_{request.user.id}.pkl"
