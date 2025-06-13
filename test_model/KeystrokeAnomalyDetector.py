@@ -1,19 +1,13 @@
-import psycopg2
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 
 # Models
-from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors, KNeighborsRegressor
+from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from scipy.special import expit
 
 # Some tools
-from sklearn.metrics import classification_report, confusion_matrix, \
-    roc_auc_score, accuracy_score, roc_curve
+from sklearn.metrics import confusion_matrix, roc_auc_score, accuracy_score, roc_curve
 
 from KeystrokeDataExtractor import KeystrokeDataExtractor
 
@@ -31,7 +25,6 @@ class KeystrokeAnomalyDetector:
     
     def _create_model(self):
         if self.model_name == 'OneClassSVM':
-            # Параметры по умолчанию + переданные в model_params
             params = {'gamma': 'auto'}
             params.update(self.model_params)
             return OneClassSVM(**params)
@@ -164,7 +157,7 @@ class KeystrokeAnomalyDetector:
             return y_pred, decision_scores
 
     def get_report(self):
-        return self.eval_results
+        return self.eval_results.copy()
 
     def evaluate(self, y_pred, scores=None):
         self.y_true = (self.y_true == 1).astype(int)
@@ -175,45 +168,33 @@ class KeystrokeAnomalyDetector:
                 scores = -scores
 
             roc_auc = roc_auc_score(self.y_true, scores)
-            # print(f"Using {np.count_nonzero(self.y_true == 1)} legit, {np.count_nonzero(self.y_true == 0)} impostors")
-            # print(f"ROC-AUC {roc_auc}")
-            # print(f"Accuracy {accuracy_score(self.y_true, y_pred)}")
-            # print(f"Confusion matrix \n{confusion_matrix(self.y_true, y_pred)}")
-            # print(f"Classification report \n{classification_report(self.y_true, y_pred)}")
+            accuracy = accuracy_score(self.y_true, y_pred)
+            conf_matrix = confusion_matrix(self.y_true, y_pred)
 
             fpr, tpr, thresholds = roc_curve(self.y_true, scores)
             fnr = 1 - tpr
 
-            # print("fpr:", fpr)
-            # print("fnr:", fnr)
-            # print("fnr - fpr:", fnr - fpr)
-
             # EER — point where FPR = FNR (or nearest to this)
             eer_threshold_index = np.nanargmin(np.absolute(fnr - fpr))
             eer = (fpr[eer_threshold_index] + fnr[eer_threshold_index]) / 2
-            # print(f"EER: {(eer * 100):.2f} % at threshold {thresholds[eer_threshold_index]:.4f}")
 
-            # Build ROC curve
-            # plt.figure(figsize=(6, 4))
-            # plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.2f})')
-            # plt.plot([0, 1], [0, 1], 'k--', label='Random guess')
-            # plt.scatter(fpr[eer_threshold_index], tpr[eer_threshold_index], color='red', label=f'EER ≈ {eer:.2f}')
-            # plt.xlabel('False Positive Rate (FPR)')
-            # plt.ylabel('True Positive Rate (TPR)')
-            # plt.title(f'ROC-кривая модели {self.model_name}')
-            # plt.legend(loc='lower right')
-            # plt.grid(True)
-            # plt.tight_layout()
-            # plt.show()
+            # ZM-FAR — FAR при FRR = 0 (то есть TPR = 1)
+            zmfar_index = np.where(tpr == 1.0)[0]
+            zmfar = fpr[zmfar_index[0]] if len(zmfar_index) > 0 else None
 
             # Save evaluation
             self.eval_results['roc_auc'] = roc_auc
+            self.eval_results['accuracy'] = accuracy
             self.eval_results['eer'] = eer
-            self.eval_results['fpr'] = fpr
-            self.eval_results['tpr'] = tpr
+            self.eval_results['fpr_list'] = fpr
+            self.eval_results['tpr_list'] = tpr
+            self.eval_results['fpr'] = fpr[eer_threshold_index]
+            self.eval_results['tpr'] = tpr[eer_threshold_index]
             self.eval_results['y_pred'] = y_pred
             self.eval_results['far'] = fpr[eer_threshold_index]
             self.eval_results['frr'] = fnr[eer_threshold_index]
+            self.eval_results['zmfar'] = zmfar
+            self.eval_results['conf_matrix'] = conf_matrix
         else:
             print("EER cannot be calculated without probability scores.")
 
@@ -245,7 +226,6 @@ class KeystrokeAnomalyDetector:
         y_true_legit = [1] * len(X_test_legit)
 
         # Get anomaly (for testing)
-        # np.random.seed(42)
         X_test_anomaly = self._generate_anomalous_data(data_target['remaining'][n_test_legit:].to_numpy(), n_test_anomaly)
         y_true_anomaly = [0] * len(X_test_anomaly)
 
@@ -271,32 +251,6 @@ class KeystrokeAnomalyDetector:
         self.X_test = np.vstack([X_test_legit, X_test_anomaly, X_test_impostors])
         self.y_true = np.concatenate([y_true_legit, y_true_anomaly, y_true_impostors])
 
-        # print(self.y_true)
-        # print(self.X_test[0])
-        # print(self.X_test[len(self.X_test) - 1])
-        
-        # Printing info about the testing dataset
-        # print(
-        #     f"Using:\n"
-        #     f"1) Legit: {np.count_nonzero(self.y_true == 1)}\n"
-        #     f"2) Impostors: {np.count_nonzero(self.y_true == 0)}\n"
-        # )
-
         self.fit_model()
         y_pred, scores = self.predict()
         self.evaluate(y_pred, scores)
-
-        # Строим график для аномальных данных
-        # df_anomaly = pd.DataFrame(X_test_anomaly, columns=data_target['remaining'].columns)
-        # hold_columns = [col for col in df_anomaly.columns if col.startswith('H.')]
-
-        # plt.figure(figsize=(10, 5))
-        # df_anomaly[hold_columns].iloc[0:50].T.plot(kind='line', legend=False, colormap='Reds')
-        # plt.title(f'Аномальные профили удержания клавиш (Hold Time)\n{target_subject}, первые 50 примеров')
-        # plt.xlabel('Клавиши')
-        # plt.ylabel('Время удержания (сек)')
-        # plt.grid(True)
-        # plt.tight_layout()
-        # plt.show()
-
-
