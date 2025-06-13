@@ -1,0 +1,140 @@
+/* ===== Base styles ===== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #0d1117; /* GitHub dark background */
+    color: #c9d1d9; /* GitHub light text */
+}
+
+/* ===== Navigation bar ===== */
+nav {
+    background: #161b22; /* GitHub navbar background */
+    padding: 12px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+}
+
+/* Ссылки в навигации */
+nav a {
+    color: #c9d1d9;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    font-size: 1rem;
+}
+
+nav a:hover {
+    color: #58a6ff; /* GitHub link hover */
+    text-decoration: underline;
+}
+
+/* ===== Основной контейнер с контентом ===== */
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px 30px;
+    background: #161b22; /* GitHub container background */
+    border-radius: 6px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ===== Кнопки и кнопки отправки ===== */
+button,
+input[type="submit"] {
+    background-color: #238636; /* GitHub green button */
+    border: none;
+    padding: 12px 20px;
+    color: #ffffff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background-color: #2ea043;
+}
+
+/* ===== Формы ===== */
+form {
+    margin-top: 20px;
+}
+
+/* Поля ввода */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0 16px 0;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #0d1117;
+    color: #c9d1d9;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+    border-color: #58a6ff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.3);
+}
+
+/* ===== Заголовки ===== */
+h1,
+h2,
+h3 {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+/* ===== Сообщения об ошибках и успехе ===== */
+.message {
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+/* Красный фон для ошибок */
+.message.error {
+    background-color: #f85149;
+    color: #fff;
+    border: 1px solid #da3633;
+}
+
+/* Зеленый фон для успеха */
+.message.success {
+    background-color: #238636;
+    color: #ffffff;
+    border: 1px solid #2ea043;
+}
+
+/* Навигация - контейнеры */
+nav .nav-brand a {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #f0f6fc;
+}
+
+nav .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+nav .nav-user {
+    color: #c9d1d9;
+    font-weight: 600;
+}
