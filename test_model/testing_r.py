@@ -3,13 +3,15 @@ import numpy as np
 import subprocess
 import os
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 from sklearn.metrics import roc_auc_score, accuracy_score, classification_report
 from KeystrokeAnomalyDetector import KeystrokeAnomalyDetector
 from typing import Literal
 from tqdm import tqdm
 
+DATASET_PATH = 'C://learning//NIR//keystroke-django-auth//test_model//datasets//DSL-StrongPasswordData.csv'
+# DATASET_PATH = '~/Desktop/learning/8_sem/NIR/keystroke_django_auth/test_model/datasets/DSL-StrongPasswordData.csv'
 
 def create_csv(data: np.array, filename: str, mode: Literal['train', 'test']) -> None:
     if filename[-3:] != 'csv':
@@ -32,20 +34,18 @@ if __name__ == '__main__':
         [f's0{i}' for i in range (10, 58, 1)]
     )
 
-    #
-    # Init model
-    #
-
-    detector = KeystrokeAnomalyDetector(model_name='LOF', scaler_enabled=False)
+    detector = KeystrokeAnomalyDetector(
+        model_name=model_name, 
+        model_params=model_params,
+        scaler_enabled=False
+    )
     detector.run_pipeline(
-        extractor_path='~/Desktop/learning/8_sem/NIR/keystroke_django_auth/test_model/datasets/DSL-StrongPasswordData.csv',
+        extractor_path=DATASET_PATH,
         target_subject='s002',
         impostors=impostors,
         n_test_legit=100,
         n_test_impostors_each=2
     )
-
-    exit(0)
 
     #
     # Get data (training vector for the model)
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     #
     # Run auth script
     #
-    
+
     result = subprocess.run(
         ["Rscript", "R-scripts/authenticator.R"],
         stdout=subprocess.PIPE,
@@ -112,6 +112,6 @@ if __name__ == '__main__':
         percent_score = min(score / cutoff, 1.0)
         is_real_user = percent_score < 1.0
         y_pred.append(1 if is_real_user else 0)
-    
+
     print(f"{classification_report(y_true, y_pred)}")
     print(f"ROC-AUC: {roc_auc_score(y_pred, y_true):.2f}")
