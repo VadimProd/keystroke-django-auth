@@ -10,7 +10,7 @@ from KeystrokeAnomalyDetector import KeystrokeAnomalyDetector
 from typing import Literal
 from tqdm import tqdm
 
-DATASET_PATH = 'C://learning//NIR//keystroke-django-auth//test_model//datasets//DSL-StrongPasswordData.csv'
+DATASET_PATH = 'C:\\learning\\NIR\\keystroke-root\\analysis\\datasets\\DSL-StrongPasswordData.csv'
 # DATASET_PATH = '~/Desktop/learning/8_sem/NIR/keystroke_django_auth/test_model/datasets/DSL-StrongPasswordData.csv'
 
 def create_csv(data: np.array, filename: str, mode: Literal['train', 'test']) -> None:
@@ -35,8 +35,8 @@ if __name__ == '__main__':
     )
 
     detector = KeystrokeAnomalyDetector(
-        model_name=model_name, 
-        model_params=model_params,
+        model_name='IsolationForest',
+        model_params={'n_estimators': 90},
         scaler_enabled=False
     )
     detector.run_pipeline(
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     #
 
     result = subprocess.run(
-        ["Rscript", "R-scripts/trainer.R"],
+        ["Rscript", "R-scripts\\trainer.R"],
         stdout=subprocess.DEVNULL,
     )
 
