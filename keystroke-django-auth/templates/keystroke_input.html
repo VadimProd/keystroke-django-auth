@@ -19,7 +19,6 @@
         const typedText = document.getElementById('typed_text').value;
         const result = [];
 
-        // Получаем все keydown события в порядке их появления
         const downs = keyEvents.filter(ev => ev.type === 'keydown');
         const ups = keyEvents.filter(ev => ev.type === 'keyup');
 

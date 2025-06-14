@@ -1,4 +1,3 @@
-import os
 import io
 import csv
 import random
@@ -18,14 +17,13 @@ from django.core.files.base import ContentFile
 
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 
 
 MAX_ATTEMPTS = 15
 
 CSV_PATH = Path(settings.BASE_DIR) / 'data' / 'keystroke_data.csv'
 
-# При старте приложения удаляем папку 'data' и создаём заново
+# When the app starts, delete the folder 'data' and create it again
 if CSV_PATH.parent.exists():
     shutil.rmtree(CSV_PATH.parent)
 
@@ -62,10 +60,9 @@ def append_row(row, columns):
         writer.writerow(row_list)
 
 def save_csv(sample, timing_data):
-    # Разбираем timing_data в OrderedDict, чтобы сохранить порядок
     timing_dict = parse_timing_data(timing_data)
     base_cols = ['user_id', 'typed_text', 'timestamp']
-    timing_cols = list(timing_dict.keys())  # без сортировки
+    timing_cols = list(timing_dict.keys())
 
     columns = base_cols + timing_cols
 
@@ -96,13 +93,12 @@ def save_csv(sample, timing_data):
 
         columns = final_columns
 
-    # Записываем строку
     row = {
         'user_id': sample.user.id,
         'typed_text': sample.typed_text,
         'timestamp': sample.timestamp.isoformat(),
     }
-    row.update(timing_dict)  # В правильном порядке
+    row.update(timing_dict)
     append_row(row, columns)
 
 def extract_features_from_timing(timing_str):
@@ -138,42 +134,29 @@ def keystroke_input(request):
         if request.session['keystroke_attempt'] > MAX_ATTEMPTS:
             del request.session['keystroke_attempt']
 
-            # Обучение модели
+            # Model training
             user_data = KeystrokeSample.objects.filter(user=request.user).values_list('timing_data', flat=True)
             X = [extract_features_from_timing(timing) for timing in user_data]
             print(X)
             X_train = np.array(X)
-            # X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
 
             scaler = StandardScaler()
             X_train_scaled = scaler.fit_transform(X_train)
-            # X_test_scaled = scaler.transform(X_test)
             
-            model = IsolationForest(contamination=0.05, random_state=42, n_estimators=6)
+            model = IsolationForest(n_estimators=90, max_features=1.0)
             model.fit(X_train_scaled)
 
             buffer = io.BytesIO()
             joblib.dump({'model': model, 'scaler': scaler}, buffer)
-            buffer.seek(0)  # перемещаемся в начало
+            buffer.seek(0)
 
-            # Сохраняем в FileField
+            # Saved in FileField
             profile, _ = KeystrokeProfile.objects.get_or_create(user=request.user)
             profile.model_file.save(
                 f"model_user_{request.user.id}.pkl", 
                 ContentFile(buffer.read()), 
                 save=True
             )
-
-            # # Имя файла — уникальное для пользователя
-            # model_filename = f"model_user_{request.user.id}.pkl"
-            # model_path = os.path.join('/app/data/models', model_filename)
-
-            # # Сохраняем модель и scaler
-            # joblib.dump({'model': model, 'scaler': scaler}, model_path)
-
-            # with open(model_path, 'rb') as f:
-            #     profile, created = KeystrokeProfile.objects.get_or_create(user=request.user)
-            #     profile.model_file.save(model_filename, File(f), save=True)
 
             return redirect('logout')
 

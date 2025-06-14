@@ -14,7 +14,10 @@ from django.contrib.auth.models import User
 from django.core.files.storage import default_storage
 
 def home(request):
-    return render(request, "home.html")
+    secret_message = ""
+    if request.user.is_authenticated:
+        secret_message = "Secret phrase: \"Open sesame!\""
+    return render(request, "home.html", {"secret_message": secret_message})
 
 def keystroke_input(request):
     return render(request, "keystroke_input.html")
@@ -40,11 +43,9 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
 
-            # Получаем timing_data из POST
             typed_text = request.POST.get('username')
             timing_data = request.POST.get('timing_data')
 
-            # Загружаем обученную модель пользователя
             try:
                 profile = KeystrokeProfile.objects.get(user=user)
                 if not profile.model_file:
@@ -52,27 +53,21 @@ def login_view(request):
                     return render(request, 'login.html', {'form': form})
 
                 with default_storage.open(profile.model_file.name, 'rb') as f:
-                    data = joblib.load(f)  # Загружаем словарь {'model': ..., 'scaler': ...}
+                    data = joblib.load(f)
                     model = data['model']
                     scaler = data['scaler']
 
                 features = extract_features_from_timing(timing_data)
                 features_scaled = scaler.transform([features])
                 prediction = model.predict(features_scaled)[0]
-                decision_scores = model.decision_function(features_scaled)
-                probabilities = expit(decision_scores)
 
-                status = "Принято (настоящий пользователь)" if prediction == 1 else "Отклонено (возможный злоумышленник)"
-                print(f"Оценка аномалии = {decision_scores}, вероятность легитимности = {probabilities} — {status}")
-                print(timing_data)
+                # decision_scores = model.decision_function(features_scaled)
+                # probabilities = expit(decision_scores)
+
+                status = "Accepted (legit user)" if prediction == 1 else "Denied (possible attacker)"
 
                 if prediction == 1:
-                    login(request, user)  # Успешный вход
-                    # KeystrokeLogin.objects.create(
-                    #     user=user,
-                    #     typed_text=typed_text,
-                    #     timing_data=timing_data
-                    # )
+                    login(request, user)
                     messages.success(request, 'Login successful with biometric verification.')
                     return redirect('home')
                 else:
@@ -91,50 +86,13 @@ def login_view(request):
 
     return render(request, 'login.html', {'form': form})
 
-# def login_view(request):
-#     if request.method == 'POST':
-#         form = AuthenticationForm(request, data=request.POST)
-#         if form.is_valid():
-#             user = form.get_user()
-#             login(request, user)  # вызываем login с другим именем (auth_login), чтобы не путать с функцией
-
-#             # Получаем данные из формы
-#             typed_text = request.POST.get('username')  # Или можно request.POST.get('typed_text'), если будет
-#             timing_data = request.POST.get('timing_data')
-
-#             # Сохраняем keystroke данные в БД
-#             KeystrokeLogin.objects.create(
-#                 user=user,
-#                 typed_text=typed_text,
-#                 timing_data=timing_data
-#             )
-
-#             messages.info(request, 'Successful login.')
-#             return redirect('home')
-#         else:
-#             messages.error(request, 'Invalid username or password.')
-#     else:
-#         form = AuthenticationForm()
-
-#     return render(request, 'login.html', {'form': form})
-
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()  # здесь сохраняется и пароль
-            login(request, user)  # сразу логиним пользователя
+            user = form.save()
+            login(request, user)
             return redirect('keystroke_input')
     else:
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form})
-
-# def register(request):
-#     if request.method == "POST":
-#         form = UserCreationForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('keystroke_input')  # сразу к сбору данных
-#     else:
-#         form = UserCreationForm()
-#     return render(request, 'register.html', {'form': form})

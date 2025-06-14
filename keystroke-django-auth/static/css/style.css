@@ -138,3 +138,16 @@ nav .nav-user {
     color: #c9d1d9;
     font-weight: 600;
 }
+
+.secret-message {
+    background-color: #ffeb3b; /* ярко-жёлтый */
+    color: #b71c1c; /* насыщенный красный */
+    padding: 15px;
+    border: 3px dashed #b71c1c;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 20px;
+    text-align: center;
+    user-select: none; /* нельзя выделить мышкой */
+}
