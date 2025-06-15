@@ -53,7 +53,7 @@ mahalanobisTrain <- function( YTrain ) {
 
 
 # Read this user's timing data as a data frame
-datafile <- '~/Desktop/learning/8_sem/NIR/keystroke_django_auth/test_model/datasets/training_data.csv';
+datafile <- '/Users/vadimnaumov/Desktop/learning/8_sem/NIR/keystroke-django-auth/analysis/datasets/training_data.csv';
 if( ! file.exists(datafile) )
   stop( "Password data file ", datafile, " does not exist");
 password.timing.df <- read.csv( datafile, header = TRUE );
@@ -80,7 +80,7 @@ print("Serializing detection model") # Need this text for the sake of the PHP sc
 # Стало
 saveRDS(
   detection.model, 
-  file = "~/Desktop/learning/8_sem/NIR/keystroke_django_auth/test_model/R-scripts/dmod"
+  file = '/Users/vadimnaumov/Desktop/learning/8_sem/NIR/keystroke-django-auth/analysis/R-scripts/dmod'
 );
 
 # Output the data to the standard out (PHP will capture that output)

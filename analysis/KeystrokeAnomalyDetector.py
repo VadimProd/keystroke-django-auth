@@ -194,7 +194,7 @@ class KeystrokeAnomalyDetector:
             self.eval_results['far'] = fpr[eer_threshold_index]
             self.eval_results['frr'] = fnr[eer_threshold_index]
             self.eval_results['zmfar'] = zmfar
-            self.eval_results['conf_matrix'] = conf_matrix
+            self.eval_results['confusion_matrix'] = conf_matrix
         else:
             print("EER cannot be calculated without probability scores.")
 

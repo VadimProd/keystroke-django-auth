@@ -132,14 +132,14 @@
 library(MASS)
 
 # Загрузка обученной модели
-detection.model.file <- "R-scripts/dmod"
+detection.model.file <- "/Users/vadimnaumov/Desktop/learning/8_sem/NIR/keystroke-django-auth/analysis/R-scripts/dmod"
 if (!file.exists(detection.model.file)) {
     stop("Detection model file does not exist")
 }
 detection.model <- readRDS(detection.model.file)
 
 # Загрузка всех попыток из общего CSV
-YScore <- read.csv("datasets/current_attempt.csv", header=TRUE, stringsAsFactors=FALSE)
+YScore <- read.csv("/Users/vadimnaumov/Desktop/learning/8_sem/NIR/keystroke-django-auth/analysis/datasets/current_attempt.csv", header=TRUE, stringsAsFactors=FALSE)
 YScore <- as.matrix(YScore)
 
 # Проверка размерности
@@ -161,7 +161,8 @@ score <- mahalanobis(
 
 
 # Среднее квадратичное отклонение на один элемент
-deviation.avg <- score / length(detection.model)
+# deviation.avg <- score / length(detection.model)
+deviation.avg <- score / length(detection.model$mean)
 
 # Максимальное допустимое значение
 deviation.max <- 7000
